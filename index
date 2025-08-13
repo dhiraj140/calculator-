@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Civil Engineering Toolkit – Static Site</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="description" content="Civil engineering calculators: concrete volume & cost, brick masonry, rebar weight, unit converter – works fully offline."/>
+  <style>
+    /* Print-friendly */
+    @media print { .no-print { display:none } body { background:#fff } }
+    /* Simple focus ring for accessibility */
+    :focus { outline: 3px solid rgba(59,130,246,.6); outline-offset: 2px; }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 text-slate-800 min-h-screen">
+  <header class="no-print sticky top-0 z-30 bg-white/80 backdrop-blur border-b border-slate-200">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <h1 class="text-xl sm:text-2xl font-bold tracking-tight">Civil Engineering Toolkit</h1>
+      <nav class="flex items-center gap-2">
+        <button class="tab-btn px-3 py-1.5 rounded-xl text-sm font-medium hover:bg-slate-100" data-target="concrete">Concrete</button>
+        <button class="tab-btn px-3 py-1.5 rounded-xl text-sm font-medium hover:bg-slate-100" data-target="brick">Brick</button>
+        <button class="tab-btn px-3 py-1.5 rounded-xl text-sm font-medium hover:bg-slate-100" data-target="rebar">Rebar</button>
+        <button class="tab-btn px-3 py-1.5 rounded-xl text-sm font-medium hover:bg-slate-100" data-target="convert">Convert</button>
+        <button class="tab-btn px-3 py-1.5 rounded-xl text-sm font-medium hover:bg-slate-100" data-target="history">History</button>
+      </nav>
+      <div class="flex items-center gap-2">
+        <button id="printBtn" class="no-print px-3 py-1.5 rounded-xl text-sm font-semibold bg-slate-900 text-white hover:bg-slate-700">Print / PDF</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto p-4 sm:p-6">
+    <section id="concrete" class="tab active">
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="bg-white rounded-2xl shadow p-5">
+          <h2 class="text-lg font-semibold mb-3">Concrete Volume & Cost</h2>
+          <div class="mb-3">
+            <label class="block text-sm font-medium mb-1">Element Type</label>
+            <select id="elType" class="w-full border rounded-xl p-2">
+              <option value="slab">Slab (L × W × Th)</option>
+              <option value="beam">Beam (L × b × h)</option>
+              <option value="column">Column (L × b × h)</option>
+            </select>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3 mb-3">
+            <div>
+              <label class="block text-sm font-medium mb-1">Length (m)</label>
+              <input id="len" type="number" step="0.001" min="0" class="w-full border rounded-xl p-2" placeholder="e.g., 5" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Width/Width b (m)</label>
+              <input id="wid" type="number" step="0.001" min="0" class="w-full border rounded-xl p-2" placeholder="e.g., 3" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Th/Depth h (m)</label>
+              <input id="ht" type="number" step="0.001" min="0" class="w-full border rounded-xl p-2" placeholder="e.g., 0.15" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3 mb-3">
+            <div>
+              <label class="block text-sm font-medium mb-1">Wastage (%)</label>
+              <input id="waste" type="number" step="0.1" min="0" value="3" class="w-full border rounded-xl p-2" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Dry to Wet factor</label>
+              <input id="dryWet" type="number" step="0.01" min="1" value="1.54" class="w-full border rounded-xl p-2" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Rate (₹/m³)</label>
+              <input id="rate" type="number" step="1" min="0" value="6000" class="w-full border rounded-xl p-2" />
+            </div>
+          </div>
+
+          <div class="flex gap-2">
+            <button id="calcConcrete" class="px-4 py-2 rounded-xl bg-slate-900 text-white font-semibold hover:bg-slate-700">Calculate</button>
+            <button id="resetConcrete" class="px-4 py-2 rounded-xl border font-semibold hover:bg-slate-50">Reset</button>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow p-5">
+          <h3 class="text-lg font-semibold mb-3">Results</h3>
+          <div id="concreteOut" class="space-y-2 text-sm">
+            <p>Enter dimensions and click Calculate.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="brick" class="tab hidden">
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="bg-white rounded-2xl shadow p-5">
+          <h2 class="text-lg font-semibold mb-3">Brick Masonry Estimator</h2>
+          <div class="grid grid-cols-2 gap-3 mb-3">
+            <div>
+              <label class="block text-sm font-medium mb-1">Wall Length (m)</label>
+              <input id="wallLen" type="number" step="0.001" min="0" class="w-full border rounded-xl p-2" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Wall Height (m)</label>
+              <input id="wallHt" type="number" step="0.001" min="0" class="w-full border rounded-xl p-2" />
+            </div>
+          </div>
+          <div class="grid grid-cols-3 gap-3 mb-3">
+            <div>
+              <label class="block text-sm font-medium mb-1">Brick (L×B×H mm)</label>
+              <input id="brickDims" type="text" class="w-full border rounded-xl p-2" value="190×90×90" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Mortar Thickness (mm)</label>
+              <input id="mortarThk" type="number" min="0" value="10" class="w-full border rounded-xl p-2" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Wastage (%)</label>
+              <input id="brickWaste" type="number" min="0" step="0.1" value="3" class="w-full border rounded-xl p-2" />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3 mb-3">
+            <div>
+              <label class="block text-sm font-medium mb-1">Rate per brick (₹)</label>
+              <input id="brickRate" type="number" step="0.01" min="0" value="8" class="w-full border rounded-xl p-2" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Openings area (m²)</label>
+              <input id="openings" type="number" step="0.001" min="0" value="0" class="w-full border rounded-xl p-2" />
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <button id="calcBrick" class="px-4 py-2 rounded-xl bg-slate-900 text-white font-semibold hover:bg-slate-700">Calculate</button>
+            <button id="resetBrick" class="px-4 py-2 rounded-xl border font-semibold hover:bg-slate-50">Reset</button>
+          </div>
+        </div>
+        <div class="bg-white rounded-2xl shadow p-5">
+          <h3 class="text-lg font-semibold mb-3">Results</h3>
+          <div id="brickOut" class="space-y-2 text-sm">
+            <p>Enter wall size and click Calculate.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="rebar" class="tab hidden">
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="bg-white rounded-2xl shadow p-5">
+          <h2 class="text-lg font-semibold mb-3">Rebar Weight</h2>
+          <div class="grid grid-cols-3 gap-3 mb-3">
+            <div>
+              <label class="block text-sm font-medium mb-1">Diameter (mm)</label>
+              <input id="dia" type="number" step="0.1" min="0" class="w-full border rounded-xl p-2" placeholder="e.g., 12" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Length (m)</label>
+              <input id="rebLen" type="number" step="0.01" min="0" class="w-full border rounded-xl p-2" placeholder="e.g., 6" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Pieces</label>
+              <input id="pieces" type="number" step="1" min="1" value="1" class="w-full border rounded-xl p-2" />
+            </div>
+          </div>
+          <div class="flex gap-2">
+            <button id="calcRebar" class="px-4 py-2 rounded-xl bg-slate-900 text-white font-semibold hover:bg-slate-700">Calculate</button>
+            <button id="resetRebar" class="px-4 py-2 rounded-xl border font-semibold hover:bg-slate-50">Reset</button>
+          </div>
+        </div>
+        <div class="bg-white rounded-2xl shadow p-5">
+          <h3 class="text-lg font-semibold mb-3">Results</h3>
+          <div id="rebarOut" class="space-y-2 text-sm">
+            <p>Enter diameter & length and click Calculate.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="convert" class="tab hidden">
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="bg-white rounded-2xl shadow p-5">
+          <h2 class="text-lg font-semibold mb-3">Unit Converter</h2>
+          <div class="grid grid-cols-2 gap-3 mb-3">
+            <div>
+              <label class="block text-sm font-medium mb-1">Feet-Inches to mm</label>
+              <input id="ft" type="number" min="0" step="1" placeholder="ft" class="w-full border rounded-xl p-2" />
+            </div>
+            <div>
+              <input id="inch" type="number" min="0" step="0.01" placeholder="in" class="w-full border rounded-xl p-2 mt-6" />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3 mb-3">
+            <div>
+              <label class="block text-sm font-medium mb-1">mm to Feet</label>
+              <input id="mm" type="number" min="0" step="0.1" placeholder="mm" class="w-full border rounded-xl p-2" />
+            </div>
+            <div class="flex items-end">
+              <button id="doConvert" class="px-4 py-2 rounded-xl bg-slate-900 text-white font-semibold hover:bg-slate-700 w-full">Convert</button>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white rounded-2xl shadow p-5">
+          <h3 class="text-lg font-semibold mb-3">Results</h3>
+          <div id="convOut" class="space-y-2 text-sm">
+            <p>Enter values and click Convert.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="history" class="tab hidden">
+      <div class="bg-white rounded-2xl shadow p-5">
+        <h2 class="text-lg font-semibold mb-3">Calculation History (Local)</h2>
+        <p class="text-sm text-slate-600 mb-3">Saved in your browser only (no server). You can clear anytime.</p>
+        <div class="flex gap-2 mb-3">
+          <button id="exportCsv" class="px-4 py-2 rounded-xl border font-semibold hover:bg-slate-50">Export CSV</button>
+          <button id="clearHist" class="px-4 py-2 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-500">Clear History</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full text-sm">
+            <thead>
+              <tr class="text-left border-b">
+                <th class="py-2 pr-4">Date/Time</th>
+                <th class="py-2 pr-4">Tool</th>
+                <th class="py-2 pr-4">Inputs</th>
+                <th class="py-2 pr-4">Result</th>
+              </tr>
+            </thead>
+            <tbody id="histBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="py-8 text-center text-xs text-slate-500">
+    <p>Made for site engineers • Works offline • No tracking</p>
+  </footer>
+
+  <script>
+    // --- Simple Tab System ---
+    const tabs = document.querySelectorAll('.tab');
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const setActive = (id) => {
+      tabs.forEach(t => t.classList.add('hidden'));
+      tabs.forEach(t => t.classList.remove('active'));
+      document.getElementById(id).classList.remove('hidden');
+      document.getElementById(id).classList.add('active');
+      tabBtns.forEach(b => b.classList.remove('bg-slate-900','text-white'));
+      tabBtns.forEach(b => { if (b.dataset.target === id) b.classList.add('bg-slate-900','text-white') });
+    };
+    tabBtns.forEach(btn => btn.addEventListener('click', () => setActive(btn.dataset.target)));
+    setActive('concrete');
+
+    // --- Utilities ---
+    const fmt = (n, d=3) => Number(n).toLocaleString(undefined, {maximumFractionDigits:d});
+    const nowStr = () => new Date().toLocaleString();
+
+    // History store
+    const KEY = 'civil_tool_history_v1';
+    const readHist = () => JSON.parse(localStorage.getItem(KEY) || '[]');
+    const writeHist = (arr) => localStorage.setItem(KEY, JSON.stringify(arr));
+    const addHist = (tool, inputs, result) => {
+      const arr = readHist();
+      arr.unshift({ts: nowStr(), tool, inputs, result});
+      writeHist(arr);
+      renderHist();
+    };
+    const renderHist = () => {
+      const body = document.getElementById('histBody');
+      body.innerHTML = '';
+      readHist().forEach(row => {
+        const tr = document.createElement('tr');
+        tr.className = 'border-b';
+        tr.innerHTML = `<td class="py-2 pr-4">${row.ts}</td>
+                        <td class="py-2 pr-4">${row.tool}</td>
+                        <td class="py-2 pr-4 text-slate-600">${row.inputs}</td>
+                        <td class="py-2 pr-4 font-medium">${row.result}</td>`;
+        body.appendChild(tr);
+      });
+    };
+    renderHist();
+
+    // Export CSV
+    document.getElementById('exportCsv').addEventListener('click', () => {
+      const rows = readHist();
+      const csv = ['"Time","Tool","Inputs","Result"', ...rows.map(r => `"${r.ts}","${r.tool}","${(r.inputs+'').replace(/"/g,'""')}","${(r.result+'').replace(/"/g,'""')}"`)].join('\n');
+      const blob = new Blob([csv], {type:'text/csv'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'civil_tool_history.csv'; a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // Clear History
+    document.getElementById('clearHist').addEventListener('click', () => {
+      if(confirm('Clear all history?')) { localStorage.removeItem(KEY); renderHist(); }
+    });
+
+    // Print
+    document.getElementById('printBtn').addEventListener('click', () => window.print());
+
+    // --- Concrete ---
+    document.getElementById('calcConcrete').addEventListener('click', () => {
+      const L = parseFloat(document.getElementById('len').value || 0);
+      const B = parseFloat(document.getElementById('wid').value || 0);
+      const H = parseFloat(document.getElementById('ht').value || 0);
+      const waste = parseFloat(document.getElementById('waste').value || 0) / 100;
+      const dryWet = parseFloat(document.getElementById('dryWet').value || 1);
+      const rate = parseFloat(document.getElementById('rate').value || 0);
+      if(!(L>0 && B>0 && H>0)) { alert('Please enter valid dimensions.'); return; }
+      const wetVol = L * B * H; // m3
+      const dryVol = wetVol * dryWet; // m3
+      const withWaste = dryVol * (1 + waste);
+      const cost = withWaste * rate;
+
+      const out = document.getElementById('concreteOut');
+      out.innerHTML = `
+        <div class="p-3 rounded-xl bg-slate-50">
+          <p>Wet Volume: <strong>${fmt(wetVol,3)} m³</strong></p>
+          <p>Dry Volume (×${dryWet}): <strong>${fmt(dryVol,3)} m³</strong></p>
+          <p>After Wastage (${fmt(waste*100,1)}%): <strong>${fmt(withWaste,3)} m³</strong></p>
+          <p>Est. Cost @ ₹${fmt(rate,0)}/m³: <strong>₹ ${fmt(cost,2)}</strong></p>
+        </div>
+      `;
+
+      addHist('Concrete', `L=${L} m, B=${B} m, H=${H} m, factor=${dryWet}, waste=${waste*100}%`, `Vol=${fmt(withWaste,3)} m³, Cost=₹${fmt(cost,2)}`);
+    });
+    document.getElementById('resetConcrete').addEventListener('click', () => {
+      ['len','wid','ht'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('concreteOut').innerHTML = '<p>Enter dimensions and click Calculate.</p>';
+    });
+
+    // --- Brick ---
+    document.getElementById('calcBrick').addEventListener('click', () => {
+      const L = parseFloat(document.getElementById('wallLen').value || 0);
+      const H = parseFloat(document.getElementById('wallHt').value || 0);
+      const openings = parseFloat(document.getElementById('openings').value || 0);
+      const dims = document.getElementById('brickDims').value.trim();
+      const thk = parseFloat(document.getElementById('mortarThk').value || 0);
+      const waste = parseFloat(document.getElementById('brickWaste').value || 0) / 100;
+      const rate = parseFloat(document.getElementById('brickRate').value || 0);
+
+      if(!(L>0 && H>0 && thk>=0)) { alert('Please enter valid wall and mortar values.'); return; }
+      // Convert brick size to meters including mortar thickness on all sides
+      const match = dims.replace(/x|X|\*/g,'×').match(/(\d+)×(\d+)×(\d+)/);
+      if(!match){ alert('Brick size must be like 190×90×90'); return; }
+      const bl = (parseFloat(match[1]) + thk) / 1000; // m
+      const bb = (parseFloat(match[2]) + thk) / 1000; // m
+      const bh = (parseFloat(match[3]) + thk) / 1000; // m
+      const brickVol = bl * bb * bh; // m3
+
+      const wallArea = Math.max(L*H - openings, 0); // m2
+      // Assume 1 brick wall thickness = 0.1 m (adjusted by brick breadth + mortar)
+      const wallThk = bb; // using breadth as thickness for single-brick wall
+      const wallVol = wallArea * wallThk;
+      const bricks = wallVol / brickVol;
+      const bricksWithWaste = bricks * (1 + waste);
+      const cost = bricksWithWaste * rate;
+
+      const out = document.getElementById('brickOut');
+      out.innerHTML = `
+        <div class="p-3 rounded-xl bg-slate-50">
+          <p>Wall Area (net): <strong>${fmt(wallArea,3)} m²</strong></p>
+          <p>Wall Volume: <strong>${fmt(wallVol,3)} m³</strong></p>
+          <p>Bricks (incl. ${fmt(waste*100,1)}% waste): <strong>${fmt(bricksWithWaste,0)}</strong></p>
+          <p>Est. Cost @ ₹${fmt(rate,2)}/brick: <strong>₹ ${fmt(cost,2)}</strong></p>
+        </div>
+      `;
+
+      addHist('Brick', `L=${L} m, H=${H} m, openings=${openings} m², brick=${dims} mm, mortar=${thk} mm`, `Bricks=${fmt(bricksWithWaste,0)}, Cost=₹${fmt(cost,2)}`);
+    });
+    document.getElementById('resetBrick').addEventListener('click', () => {
+      ['wallLen','wallHt','openings','mortarThk','brickWaste','brickRate'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('brickDims').value = '190×90×90';
+      document.getElementById('brickOut').innerHTML = '<p>Enter wall size and click Calculate.</p>';
+    });
+
+    // --- Rebar ---
+    document.getElementById('calcRebar').addEventListener('click', () => {
+      const d = parseFloat(document.getElementById('dia').value || 0);
+      const L = parseFloat(document.getElementById('rebLen').value || 0);
+      const pcs = parseInt(document.getElementById('pieces').value || 1);
+      if(!(d>0 && L>0 && pcs>0)) { alert('Enter valid diameter, length and pieces.'); return; }
+      // Standard formula: weight (kg/m) ≈ d^2 / 162
+      const kgPerM = (d*d) / 162.0;
+      const total = kgPerM * L * pcs;
+      const out = document.getElementById('rebarOut');
+      out.innerHTML = `
+        <div class="p-3 rounded-xl bg-slate-50">
+          <p>Unit Weight: <strong>${fmt(kgPerM,3)} kg/m</strong></p>
+          <p>Total Weight: <strong>${fmt(total,3)} kg</strong></p>
+        </div>
+      `;
+      addHist('Rebar', `d=${d} mm, L=${L} m, pcs=${pcs}`, `Total=${fmt(total,3)} kg`);
+    });
+    document.getElementById('resetRebar').addEventListener('click', () => {
+      ['dia','rebLen','pieces'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('rebarOut').innerHTML = '<p>Enter diameter & length and click Calculate.</p>';
+    });
+
+    // --- Converter ---
+    document.getElementById('doConvert').addEventListener('click', () => {
+      const ft = parseFloat(document.getElementById('ft').value || 0);
+      const inch = parseFloat(document.getElementById('inch').value || 0);
+      const mmIn = parseFloat(document.getElementById('mm').value || 0);
+      let lines = [];
+      if(ft>0 || inch>0){
+        const totalIn = ft*12 + inch;
+        const mm = totalIn * 25.4;
+        lines.push(`Feet-Inches → mm: <strong>${fmt(mm,2)} mm</strong>`);
+        addHist('Convert', `${ft} ft ${inch} in`, `${fmt(mm,2)} mm`);
+      }
+      if(mmIn>0){
+        const totalInches = mmIn/25.4;
+        const wholeFt = Math.floor(totalInches/12);
+        const remIn = totalInches - wholeFt*12;
+        lines.push(`mm → Feet-Inches: <strong>${wholeFt} ft ${fmt(remIn,2)} in</strong>`);
+        addHist('Convert', `${fmt(mmIn,2)} mm`, `${wholeFt} ft ${fmt(remIn,2)} in`);
+      }
+      if(lines.length===0) lines.push('Enter values and click Convert.');
+      document.getElementById('convOut').innerHTML = `<div class="p-3 rounded-xl bg-slate-50 space-y-1">${lines.map(l=>`<p>${l}</p>`).join('')}</div>`;
+    });
+  </script>
+</body>
+</html>
